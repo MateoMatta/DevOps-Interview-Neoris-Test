@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongod
+spec:
+  serviceName: mongodb-service
+  replicas: 3
+  selector:
+    matchLabels:
+      role: mongo
+  template:
+    metadata:
+      labels:
+        role: mongo
+        environment: dev
+        replicaset: MainRepSet
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: mongod-container
+          image: mongo
+          command: ["bash", "-c"]
+          args:
+          - |
+            echo $mongodb_replica_set_sh > mongodb_replica_set.sh
+            sed -i 's@#REPLACE @\n@g' mongodb_replica_set.sh
+            bash mongodb_replica_set.sh $MONGO_INITDB_ROOT_USERNAME $MONGO_INITDB_ROOT_PASSWORD
+            bash mongodb_replica_set.sh $MONGO_INITDB_ROOT_USERNAME $MONGO_INITDB_ROOT_PASSWORD
+            echo "Done!"
+
+            # sleep 9999
+
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: 200Mi
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongodb-persistent-storage-claim
+              mountPath: /data/db
+          envFrom:
+            - configMapRef:
+                name: envs-config
+            - secretRef:
+                name: api-secrets
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-persistent-storage-claim
+      annotations:
+        volume.beta.kubernetes.io/storage-class: "standard"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+  labels:
+    name: mongo
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  clusterIP: None
+  selector:
+    role: mongo
+
+#Test if the Pods are dome with the configuration
+#k logs -f mongod-0
+#Or
+#kubectl logs -f mongod-0

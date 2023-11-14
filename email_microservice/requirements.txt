@@ -1,0 +1,16 @@
+Flask==2.2.5
+connexion[swagger-ui]==2.14.2
+python-jose[cryptography]
+Flask-Injector==0.15.0
+injector==0.21.0
+flask_cors==4.0.0
+pymongo==4.5.0
+# pyjwt[crypto]==2.8.0
+ipython==8.16.1
+pillow==10.1.0
+SQLAlchemy==2.0.16
+setuptools==65.5.1
+wheel==0.38.1
+PyJWT==2.8.0
+# python-dotenv==0.19.2
+
