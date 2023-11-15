@@ -1,0 +1,73 @@
+
+        # envFrom:
+        #   - configMapRef:
+        #       name: envs-config
+        # env:
+        # - name: MONGO_INITDB_ROOT_USERNAME
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: mongo-creds
+        #       key: admin
+        # - name: MONGO_INITDB_ROOT_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: mongo-creds
+        #       key: admin
+        # env:
+        # - name: MONGO_INITDB_ROOT_PASSWORD
+        #   value: "..."
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # labels:
+  #   app: mongodb
+
+  # mongodb-deployment
+  name: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      # hostname: mongodb
+      containers:
+      - name: mongodb
+        image: mongo
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 27017
+        # apt update -y; apt-get install -y mongodb-mongosh
+        # command: ["/bin/sh"]
+        # args: ["-c", "echo Hello there from MongoDB; sleep 300"]
+        # command: ["/bin/sh"]
+        # args: ["-c", "apt update --yes; apt install net-tools curl"]
+
+        envFrom:
+          - configMapRef:
+              name: envs-config
+          - secretRef:
+              name: api-secrets
+        resources: {}
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - name: mongodb
+      protocol: TCP
+      port: 27017
+      targetPort: 27017
+    
